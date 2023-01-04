@@ -2,9 +2,6 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
-
-import javax.security.auth.login.Configuration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +160,7 @@ public class HelloWorldTest {
     public void EX7_LongRedirect() {
         String URL = "https://playground.learnqa.ru/api/long_redirect";
         int count_redirects = 0;
-        while(true){
+        while (true) {
             Response response = RestAssured
                     .given()
                     .redirects()
@@ -172,10 +169,48 @@ public class HelloWorldTest {
                     .get(URL)
                     .andReturn();
             count_redirects++;
-            if (response.getStatusCode() == 200){
-                break;
-            };
+            if (response.getStatusCode() == 200) {break;}
         }
         System.out.println("Количество редиректов: " + count_redirects);
+    }
+
+    @Test
+    public void EX8_Tokens() throws InterruptedException {
+        String URL = "https://playground.learnqa.ru/ajax/api/longtime_job";
+
+        JsonPath responseBeforeToken = RestAssured
+                .get(URL)
+                .jsonPath();
+
+        String token = responseBeforeToken.get("token");
+        System.out.println("token: " + token);
+
+        int seconds = responseBeforeToken.get("seconds");
+        System.out.println("seconds: " + seconds);
+
+        Map<String, String> param = new HashMap<>();
+        param.put("token", token);
+
+        Response responseAfterToken = RestAssured
+                .given()
+                .queryParams(param)
+                .when()
+                .get(URL)
+                .andReturn();
+
+        System.out.println("Response after get with token:");
+        responseAfterToken.prettyPrint();
+
+        Thread.sleep((seconds)*1000);
+
+        Response responseAfterTokenAndExpectation = RestAssured
+                .given()
+                .queryParams(param)
+                .when()
+                .get(URL)
+                .andReturn();
+
+        System.out.println("Response after get with token and expectation:");
+        responseAfterTokenAndExpectation.prettyPrint();
     }
 }
