@@ -158,4 +158,24 @@ public class HelloWorldTest {
 
         System.out.println(response.getHeader("Location"));
     }
+
+    @Test
+    public void EX7_LongRedirect() {
+        String URL = "https://playground.learnqa.ru/api/long_redirect";
+        int count_redirects = 0;
+        while(true){
+            Response response = RestAssured
+                    .given()
+                    .redirects()
+                    .follow(true)
+                    .when()
+                    .get(URL)
+                    .andReturn();
+            count_redirects++;
+            if (response.getStatusCode() == 200){
+                break;
+            };
+        }
+        System.out.println("Количество редиректов: " + count_redirects);
+    }
 }
