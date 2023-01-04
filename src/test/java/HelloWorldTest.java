@@ -144,4 +144,18 @@ public class HelloWorldTest {
 
         System.out.println(messages.stream().toArray()[1]);
     }
+
+    @Test
+    public void EX6_Redirect() {
+        String URL = "https://playground.learnqa.ru/api/long_redirect";
+        Response response = RestAssured
+                .given()
+                .redirects()
+                .follow(false)
+                .when()
+                .get(URL)
+                .andReturn();
+
+        System.out.println(response.getHeader("Location"));
+    }
 }
