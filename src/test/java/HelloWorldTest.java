@@ -3,7 +3,10 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
+import javax.security.auth.login.Configuration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HelloWorldTest {
@@ -114,7 +117,7 @@ public class HelloWorldTest {
         String respCookies = responseFromGet.getCookie("auth_cookie");
 
         Map<String, String> cookies = new HashMap<>();
-        if (respCookies != null){
+        if (respCookies != null) {
             cookies.put("auth_cookie", respCookies);
         }
 
@@ -127,5 +130,18 @@ public class HelloWorldTest {
                 .andReturn();
 
         respCheck.print();
+    }
+
+    @Test
+    public void EX5_ParseJSON() {
+        String URL = "https://playground.learnqa.ru/api/get_json_homework";
+        JsonPath response = RestAssured
+                .given()
+                .get(URL)
+                .jsonPath();
+
+        List<String> messages = response.getList("messages");
+
+        System.out.println(messages.stream().toArray()[1]);
     }
 }
