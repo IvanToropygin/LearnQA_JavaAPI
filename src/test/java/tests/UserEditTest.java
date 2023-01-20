@@ -110,7 +110,6 @@ public class UserEditTest extends BaseTestCase {
         //Get update data
         Response responseUserData = apiCoreRequests.makeGetRequest(urlUser, headerFirst, cookieFirst);
 
-        System.out.println(responseUserData.asString());
         Assertions.assertJsonByName(responseUserData, "firstName", "learnqa");
     }
 

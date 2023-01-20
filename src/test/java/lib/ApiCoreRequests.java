@@ -2,7 +2,6 @@ package lib;
 
 import io.qameta.allure.Step;
 import io.qameta.allure.restassured.AllureRestAssured;
-import io.restassured.RestAssured;
 import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
@@ -73,6 +72,15 @@ public class ApiCoreRequests {
                 .filter(new AllureRestAssured())
                 .body(userData)
                 .post(url)
+                .andReturn();
+    }
+
+    @Step("Make a DELETE-request to delete user")
+    public Response makeDeleteUserRequest(String url, String token, String cookie){
+        return given()
+                .header(new Header("x-csrf-token", token))
+                .cookie("auth_sid", cookie)
+                .delete(url)
                 .andReturn();
     }
 }
