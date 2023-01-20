@@ -1,23 +1,36 @@
 package tests;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.TmsLink;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import lib.ApiCoreRequests;
 import lib.Assertions;
 import lib.BaseTestCase;
 import lib.DataGenerator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserDeleteTest extends BaseTestCase {
 
     private final ApiCoreRequests apiCoreRequests = new ApiCoreRequests();
 
     @Test
+    @Epic("Сustomers interaction")
+    @Feature("Deleting customers")
+    @DisplayName("Create a user, log in from under him, delete, then try to get his data by ID and make sure that the user is really deleted")
+    @Severity(SeverityLevel.BLOCKER)
     public void testDeleteJustCreatedTest(){
         //Generate user
         Map<String, String> userData = DataGenerator.getRegistrationData();
@@ -52,6 +65,10 @@ public class UserDeleteTest extends BaseTestCase {
     }
 
     @Test
+    @Epic("Сustomers interaction")
+    @Feature("Deleting customers")
+    @DisplayName("try to delete user by ID 2")
+    @Severity(SeverityLevel.NORMAL)
     public void testDeleteID2Test(){
         //Login
         Map<String, String> authData = new HashMap<>();
@@ -77,6 +94,13 @@ public class UserDeleteTest extends BaseTestCase {
     }
 
     @Test
+    @Epic("Сustomers interaction")
+    @Feature("Deleting customers")
+    @DisplayName("try to delete the user while being logged in by another user")
+    @Severity(SeverityLevel.CRITICAL)
+    @Issue("1")
+    @TmsLink("test-1")
+    @Description("Баг метода: не удаляется пользователь, указанного ID, а удаляется, под которым прошла авторизация")
     public void testDeleteJustCreatedAuthAnotherAuthUserTest() {
         String urlCreate = "https://playground.learnqa.ru/api/user";
         //Generate user1
@@ -104,15 +128,17 @@ public class UserDeleteTest extends BaseTestCase {
         //Delete user1
         String urlUserFirst = "https://playground.learnqa.ru/api/user/" + userFirstId;
 
+        String urlUserSecond = "https://playground.learnqa.ru/api/user/" + userSecondId;
+
         Response responseDelete = apiCoreRequests.makeDeleteUserRequest(urlUserFirst, header, cookie);
 
         //Assert
-        Response responseUserData = apiCoreRequests.makeGetRequest(urlUserFirst, header, cookie);
-        responseUserData.prettyPrint();
+        Response responseFirstUserData = apiCoreRequests.makeGetRequestWithoutTokenAndCookie(urlUserFirst);
+        Response responseSecondUserData = apiCoreRequests.makeGetRequestWithoutTokenAndCookie(urlUserSecond);
 
         assertAll(
-                () -> Assertions.assertResponseCodeEquals(responseDelete, 400),
-                () -> Assertions.assertResponseTextEquals(responseDelete, "Unknown text")
+                () -> assertEquals(userDataSecond.get("username"), responseSecondUserData.getBody().path("username")),
+                () -> assertEquals(userDataFirst.get("username"), responseFirstUserData.getBody().path("username"))
         );
     }
 }
